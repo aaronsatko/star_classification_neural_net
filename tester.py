@@ -9,4 +9,8 @@ print(f"ID of the current CUDA device: {cuda_id}")
 
 print(f"Name of the current CUDA device: {torch.cuda.get_device_name(cuda_id)}")
 
-
+'''
+import torch
+x = torch.rand(25, 10)
+print(x)
+'''

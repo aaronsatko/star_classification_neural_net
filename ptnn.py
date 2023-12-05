@@ -1,93 +1,125 @@
 import torch
 import torch.nn as nn
+# neural net module
+import torch.nn.functional as F
+# convolution pooling, activation functio, loss
 import torch.optim as optim
-from torch.utils.data import DataLoader, Dataset
-import torchvision.transforms as transforms
+# optimization algos
+from torch.utils.data import DataLoader, TensorDataset
+# data handling
+import pandas as pd
+from sklearn.model_selection import train_test_split
+# split dataset into training and testing sets
+from sklearn.preprocessing import StandardScaler
+# preprocessing
+from sklearn.metrics import accuracy_score
+# calculate accuracy of a model
+import numpy as np
 
-# Check if CUDA is available and set the device to GPU if it is, else CPU
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# Define your neural network
-class MyNeuralNetwork(nn.Module):
+# load dataset
+data = pd.read_csv('star_classification_pruned.csv')
+
+# preprocess data in a hashmap  to convert classes to numerical
+class_map = {'GALAXY': 0, 'STAR': 1, 'QSO': 2}
+data['class'] = data['class'].map(class_map)
+
+# input data 
+X = data[['u', 'g', 'r', 'i', 'z', 'redshift']].values
+# output data
+y = data['class'].values
+
+# training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# standardization of features
+scalar = StandardScaler()
+X_train = scalar.fit_transform(X_train)
+X_test = scalar.transform(X_test)
+
+# convert data into torch tensors
+
+X_train = torch.tensor(X_train, dtype=torch.float32)
+X_test = torch.tensor(X_test, dtype=torch.float32)
+y_train = torch.tensor(y_train, dtype=torch.long)
+y_test = torch.tensor(y_test, dtype=torch.long)
+
+
+# Create tensor datasets
+train_dataset = TensorDataset(X_train, y_train)
+test_dataset = TensorDataset(X_test, y_test)
+
+# batch handling
+train_loader = DataLoader(train_dataset, batch_size=64, shuffle=True)
+test_loader = DataLoader(test_dataset, batch_size=64, shuffle=False)
+
+# nn architecture
+class Net(nn.Module):
     def __init__(self):
-        super(MyNeuralNetwork, self).__init__()
-        # Define the layers of the network
-        # Example: nn.Linear(input_features, output_features)
-        self.layer1 = nn.Linear(in_features=..., out_features=...)
-        self.layer2 = nn.Linear(in_features=..., out_features=...)
-        # Continue adding layers...
-        self.output_layer = nn.Linear(in_features=..., out_features=...)
+        super(Net, self).__init__()
+        # First fully connected layer
+        self.fc1 = nn.Linear(6, 128)  # 6 input features
+        # Second fully connected layer
+        self.fc2 = nn.Linear(128, 64)
+        # Output layer, 3 classes
+        self.fc3 = nn.Linear(64, 3)
 
     def forward(self, x):
-        # Define the forward pass
-        # Apply layers and activation functions
-        # Example: x = torch.relu(self.layer1(x))
-        x = torch.relu(self.layer1(x))
-        x = torch.relu(self.layer2(x))
-        # Continue through your layers...
-        x = self.output_layer(x)
+        # Apply ReLU activation function after first layer
+        x = F.relu(self.fc1(x))
+        # Apply ReLU activation function after second layer
+        x = F.relu(self.fc2(x))
+        # No activation needed in the output layer
+        x = self.fc3(x)
         return x
+    
+net = Net()
 
-# Instantiate the network
-model = MyNeuralNetwork().to(device)
+# loss function
+loss_func = nn.CrossEntropyLoss()
 
-# Define the loss function and optimizer
-# Example: nn.CrossEntropyLoss for classification tasks
-criterion = nn.CrossEntropyLoss()
-# Example optimizer: optim.Adam(model.parameters(), lr=learning_rate)
-optimizer = optim.Adam(model.parameters(), lr=0.001)
+# use adam optimizer
+optimizer = optim.Adam(net.parameters(), lr=0.001)
 
-# Data loading and preprocessing
-# Define your dataset class if custom
-class MyDataset(Dataset):
-    def __init__(self, ...):
-        # Initialize dataset, usually involves reading a file and preprocessing
-        # Example: self.data = pd.read_csv(file_path)
-        pass
 
-    def __len__(self):
-        # Return the size of the dataset
-        pass
+# train the neural net
+for epoch in range(10):  # loop over the dataset multiple times
+    running_loss = 0.0
+    for i, data in enumerate(train_loader, 0):
+        # get the inputs; data is a list of [inputs, labels]
+        inputs, labels = data
 
-    def __getitem__(self, idx):
-        # Retrieve an item by index
-        # Example: return self.data[idx]
-        pass
+        # zero the parameter gradients
+        optimizer.zero_grad()
 
-# Example: transform = transforms.Compose([transforms.ToTensor(), ...])
-transform = transforms.Compose([
-    # Define necessary transformations like ToTensor, Normalize, etc.
-])
+        # forward + backward + optimize
+        outputs = net(inputs)
+        loss = loss_func(outputs, labels)
+        loss.backward()
+        optimizer.step()
 
-# Load your dataset
-# Example: train_dataset = MyDataset(csv_file='train.csv', transform=transform)
-train_dataset = MyDataset(..., transform=transform)
+        running_loss += loss.item()
+    print(f'Epoch {epoch + 1}, Loss: {running_loss / len(train_loader)}')
 
-# Create a DataLoader
-train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
+print('Finished Training')
 
-# Training loop
-for epoch in range(num_epochs):
-    for batch_idx, (data, targets) in enumerate(train_loader):
-        # Send data to device
-        data = data.to(device)
-        targets = targets.to(device)
 
-        # Forward pass
-        scores = model(data)
-        loss = criterion(scores, targets)
+# test net
+net.eval()
+y_pred = []
+with torch.no_grad():
+    for inputs, labels in test_loader:
+        outputs = net(inputs)
+        _, predicted = torch.max(outputs.data, 1)
+        y_pred.extend(predicted.numpy())
+        
+        
+# accuracy
+accuracy = accuracy_score(y_test.numpy(), np.array(y_pred))
+print(f'Accuracy: {accuracy * 100:.2f}%')
 
-        # Backward pass and optimization
-        optimizer.zero_grad() # Zero out the gradients from previous step
-        loss.backward() # Compute the gradients
-        optimizer.step() # Update the weights
 
-        # Print statistics
-        if batch_idx % 100 == 0:
-            print(f"Epoch [{epoch}/{num_epochs}], Step [{batch_idx}/{len(train_loader)}], Loss: {loss.item():.4f}")
 
-# Save the model
-torch.save(model.state_dict(), "model.pth")
 
-# To load the model later
-# model.load_state_dict(torch.load("model.pth"))
+
+
