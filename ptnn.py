@@ -16,6 +16,9 @@ from sklearn.metrics import accuracy_score
 # calculate accuracy of a model
 import numpy as np
 
+
+EPOCHS = 11
+
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Using device: {device}")
 
@@ -44,8 +47,6 @@ scaler = StandardScaler()
 X_train = scaler.fit_transform(X_train)
 X_val = scaler.transform(X_val)
 X_test = scaler.transform(X_test)
-
-# convert data into torch tensors
 
 # convert data into torch tensors
 X_train = torch.tensor(X_train, dtype=torch.float32)
@@ -98,7 +99,12 @@ optimizer = optim.Adam(net.parameters(), lr=0.001)
 
 
 # train the neural net
-for epoch in range(20):
+# Lists to store losses
+training_losses = []
+validation_losses = []
+
+# train the neural net
+for epoch in range(EPOCHS):
     net.train()
     running_loss = 0.0
     for inputs, labels in train_loader:
@@ -111,6 +117,10 @@ for epoch in range(20):
 
         running_loss += loss.item()
 
+    # Calculate average training loss for this epoch
+    avg_train_loss = running_loss / len(train_loader)
+    training_losses.append(avg_train_loss)
+
     net.eval()  # Set the network to evaluation mode
     val_loss = 0.0
     with torch.no_grad():
@@ -120,7 +130,11 @@ for epoch in range(20):
             loss = loss_func(outputs, labels)
             val_loss += loss.item()
 
-    print(f'Epoch {epoch + 1}, Training Loss: {running_loss / len(train_loader)}, Validation Loss: {val_loss / len(val_loader)}')
+    # Calculate average validation loss for this epoch
+    avg_val_loss = val_loss / len(val_loader)
+    validation_losses.append(avg_val_loss)
+
+    print(f'Epoch {epoch + 1}, Training Loss: {avg_train_loss}, Validation Loss: {avg_val_loss}')
 
 print('Finished Training')
 
@@ -140,7 +154,18 @@ accuracy = accuracy_score(y_test.numpy(), np.array(y_pred))
 print(f'Accuracy: {accuracy * 100:.2f}%')
 
 
+import matplotlib.pyplot as plt
 
+epochs = range(1, EPOCHS + 1)  # 10 epochs
+plt.figure(figsize=(10, 6))
+plt.plot(epochs, training_losses, label='Training Loss', marker='o')
+plt.plot(epochs, validation_losses, label='Validation Loss', marker='o')
+plt.title('Loss Curve')
+plt.xlabel('Epochs')
+plt.ylabel('Loss')
+plt.legend()
+plt.grid(True)
+plt.savefig('plots/loss_curve.png')
 
 # save results for reuse
 torch.save(net.state_dict(), 'model.pth')
