@@ -83,7 +83,7 @@ optimizer = optim.Adam(net.parameters(), lr=0.001)
 
 
 # train the neural net
-for epoch in range(10):  # loop over the dataset multiple times
+for epoch in range(20):  # loop over the dataset multiple times
     running_loss = 0.0
     for i, data in enumerate(train_loader, 0):
         # get the inputs; data is a list of [inputs, labels]
@@ -122,4 +122,5 @@ print(f'Accuracy: {accuracy * 100:.2f}%')
 
 
 
-
+# save results for reuse
+torch.save(net.state_dict(), 'model.pth')
