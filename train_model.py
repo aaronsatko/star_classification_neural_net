@@ -88,13 +88,14 @@ class Net(nn.Module):
         # No activation for out
         x = self.fc3(x)
         return x
-    
+'''   
     def extract_features(self, x):
         # Extract features from the second layer
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))
         return x
-    
+'''
+
 net = Net().to(device)
 
 # loss function
@@ -160,7 +161,7 @@ accuracy = accuracy_score(y_test.numpy(), np.array(y_pred))
 print(f'Accuracy: {accuracy * 100:.2f}%')
 
 # save results for reuse
-torch.save(net.state_dict(), 'model.pth')
+# torch.save(net.state_dict(), 'model.pth')
 
 
 import matplotlib.pyplot as plt
@@ -205,21 +206,3 @@ plt.title("Pre-Classification T-Distributed Stochastic Neighbor Embedding")
 plt.savefig('plots/tsne.png')
 
 
-# Extract features for t-SNE
-net.eval()
-features = []
-with torch.no_grad():
-    for inputs, _ in test_loader:
-        inputs = inputs.to(device)
-        feature = net.extract_features(inputs)
-        features.extend(feature.cpu().numpy())
-
-# Apply t-SNE on the extracted features
-tsne_features = TSNE(n_components=2, random_state=42).fit_transform(np.array(features))
-
-# Plot post-classification t-SNE
-plt.figure(figsize=(10, 8))
-plt.scatter(tsne_features[:, 0], tsne_features[:, 1], c=y_test.numpy(), cmap="jet")
-plt.colorbar()
-plt.title("Post-Classification T-Distributed Stochastic Neighbor Embedding")
-plt.savefig('plots/post_tsne.png')
