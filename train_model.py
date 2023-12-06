@@ -15,6 +15,8 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import accuracy_score
 # calculate accuracy of a model
 import numpy as np
+# progress bar
+from tqdm import tqdm
 
 
 EPOCHS = 11
@@ -24,7 +26,7 @@ print(f"Using device: {device}")
 
 
 # load dataset
-data = pd.read_csv('star_classification_pruned.csv')
+data = pd.read_csv('star_classification.csv')
 
 # preprocess data in a hashmap  to convert classes to numerical
 class_map = {'GALAXY': 0, 'STAR': 1, 'QSO': 2}
@@ -72,12 +74,12 @@ class Net(nn.Module):
     def __init__(self):
         super(Net, self).__init__()
         # First fully connected layer
-        self.fc1 = nn.Linear(6, 128)
+        self.fc1 = nn.Linear(6, 12)
         # Second fully connected layer
         #self.fc2 = nn.Linear(128, 128)
-        self.fc2 = nn.Linear(128, 64)
+        self.fc2 = nn.Linear(12, 12)
         # Output layer, 3 classes
-        self.fc3 = nn.Linear(64, 3)
+        self.fc3 = nn.Linear(12, 3)
 
     def forward(self, x):
         # ReLU activation function after first layer
@@ -111,7 +113,7 @@ training_losses = []
 validation_losses = []
 
 # train the neural net
-for epoch in range(EPOCHS):
+for epoch in tqdm(range(EPOCHS), desc="Training Progress"):
     net.train()
     running_loss = 0.0
     for inputs, labels in train_loader:
@@ -141,7 +143,7 @@ for epoch in range(EPOCHS):
     avg_val_loss = val_loss / len(val_loader)
     validation_losses.append(avg_val_loss)
 
-    print(f'Epoch {epoch + 1}, Training Loss: {avg_train_loss}, Validation Loss: {avg_val_loss}')
+    print(f'Epoch {epoch + 1}/{EPOCHS}: Training Loss = {avg_train_loss:.4f}, Validation Loss = {avg_val_loss:.4f}')
 
 print('Finished Training')
 
@@ -173,16 +175,14 @@ import seaborn as sns
 # loss_curve
 epochs = range(1, EPOCHS + 1)
 plt.figure(figsize=(10, 6))
-plt.plot(epochs, training_losses, label='Training Loss', marker='o')
-plt.plot(epochs, validation_losses, label='Validation Loss', marker='o')
-plt.title('Loss Curve')
-plt.xlabel('Epochs')
-plt.ylabel('Loss')
+plt.plot(epochs, training_losses, label='Training Loss', marker='o', color='blue')
+plt.plot(epochs, validation_losses, label='Validation Loss', marker='o', color='red')
+plt.title('Training and Validation Loss Over Epochs', fontsize=14)
+plt.xlabel('Epochs', fontsize=12)
+plt.ylabel('Loss', fontsize=12)
 plt.legend()
 plt.grid(True)
 plt.savefig('plots/loss_curve.png')
-
-
 
 
 # confusion matrix
@@ -195,7 +195,7 @@ plt.ylabel('Actual Class')
 plt.xlabel('Predicted Class')
 plt.savefig('plots/confusion_matrix.png')
 
-
+'''
 # TSNE Plot
 tsne = TSNE(n_components=2, random_state=42)
 X_reduced = tsne.fit_transform(X_test)
@@ -206,3 +206,4 @@ plt.title("Pre-Classification T-Distributed Stochastic Neighbor Embedding")
 plt.savefig('plots/tsne.png')
 
 
+'''
