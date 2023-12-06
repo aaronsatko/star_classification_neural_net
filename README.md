@@ -4,7 +4,7 @@ This project involves a neural network model designed to classify astronomical o
 
 ## Project Overview
 
-The goal of this project is to accurately classify astronomical objects based on their features such as 'u', 'g', 'r', 'i', 'z', and 'redshift'. The dataset used is `star_classification_pruned.csv`, which contains labeled examples of each class.
+The goal of this project is to accurately classify astronomical objects based on their features such as 'u', 'g', 'r', 'i', 'z', and 'redshift'. The dataset used is `star_classification.csv`, which contains labeled examples of each class.
 
 ## Model Architecture
 
@@ -46,7 +46,11 @@ To train the model, run the main script:
 python train_model.py
 ```
 
-This will train the model and save the trained model as `model.pth`. The script will also generate a plot of the loss curve during training and validation, saved as `loss_curve.png` and a confusion matrix.
+This will train the model and save the trained model as `model.pth`. The script will also generate a plot of the loss curve during training and validation, saved as `loss_curve.png` and a confusion matrix as `confusion_matrix.png`.
+
+## Example 
+
+A user may then input star photometric data and load the saved `model.pth`so manually use it to classify a stellar object.
 
 ## Results
 
@@ -61,4 +65,3 @@ Pytorch nn documentation
 https://www.sdss4.org/dr17/
 Sentdex Youtube - Neural Networks from Scratch
 https://www.youtube.com/@sentdex
----

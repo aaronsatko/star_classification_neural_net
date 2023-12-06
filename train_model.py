@@ -163,7 +163,7 @@ accuracy = accuracy_score(y_test.numpy(), np.array(y_pred))
 print(f'Accuracy: {accuracy * 100:.2f}%')
 
 # save results for reuse
-# torch.save(net.state_dict(), 'model.pth')
+torch.save(net.state_dict(), 'model.pth')
 
 
 import matplotlib.pyplot as plt
@@ -195,15 +195,3 @@ plt.ylabel('Actual Class')
 plt.xlabel('Predicted Class')
 plt.savefig('plots/confusion_matrix.png')
 
-'''
-# TSNE Plot
-tsne = TSNE(n_components=2, random_state=42)
-X_reduced = tsne.fit_transform(X_test)
-plt.figure(figsize=(10, 8))
-plt.scatter(X_reduced[:, 0], X_reduced[:, 1], c=y_test.numpy(), cmap="jet")
-plt.colorbar()
-plt.title("Pre-Classification T-Distributed Stochastic Neighbor Embedding")
-plt.savefig('plots/tsne.png')
-
-
-'''
