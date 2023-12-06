@@ -17,6 +17,8 @@ from sklearn.metrics import accuracy_score
 import numpy as np
 # progress bar
 from tqdm import tqdm
+import joblib
+from model import Net
 
 
 EPOCHS = 11
@@ -50,6 +52,8 @@ X_train = scaler.fit_transform(X_train)
 X_val = scaler.transform(X_val)
 X_test = scaler.transform(X_test)
 
+joblib.dump(scaler, 'model\scaler.save')
+
 # convert data into torch tensors
 X_train = torch.tensor(X_train, dtype=torch.float32)
 X_val = torch.tensor(X_val, dtype=torch.float32)
@@ -69,34 +73,7 @@ train_loader = DataLoader(train_dataset, batch_size=64, shuffle=True)
 val_loader = DataLoader(val_dataset, batch_size=64, shuffle=False)
 test_loader = DataLoader(test_dataset, batch_size=64, shuffle=False)
 
-# nn architecture
-class Net(nn.Module):
-    def __init__(self):
-        super(Net, self).__init__()
-        # First fully connected layer
-        self.fc1 = nn.Linear(6, 12)
-        # Second fully connected layer
-        #self.fc2 = nn.Linear(128, 128)
-        self.fc2 = nn.Linear(12, 12)
-        # Output layer, 3 classes
-        self.fc3 = nn.Linear(12, 3)
 
-    def forward(self, x):
-        # ReLU activation function after first layer
-        x = F.relu(self.fc1(x))
-        # ReLU activation function after second layer
-        x = F.relu(self.fc2(x))
-        #x = F.relu(self.fc3(x))
-        # No activation for out
-        x = self.fc3(x)
-        return x
-'''   
-    def extract_features(self, x):
-        # Extract features from the second layer
-        x = F.relu(self.fc1(x))
-        x = F.relu(self.fc2(x))
-        return x
-'''
 
 net = Net().to(device)
 
@@ -130,7 +107,7 @@ for epoch in tqdm(range(EPOCHS), desc="Training Progress"):
     avg_train_loss = running_loss / len(train_loader)
     training_losses.append(avg_train_loss)
 
-    net.eval()  # Set the network to evaluation mode
+    net.eval()
     val_loss = 0.0
     with torch.no_grad():
         for inputs, labels in val_loader:
@@ -163,12 +140,11 @@ accuracy = accuracy_score(y_test.numpy(), np.array(y_pred))
 print(f'Accuracy: {accuracy * 100:.2f}%')
 
 # save results for reuse
-torch.save(net.state_dict(), 'model.pth')
+torch.save(net.state_dict(), 'model\model.pth')
 
 
 import matplotlib.pyplot as plt
 from sklearn.metrics import confusion_matrix
-from sklearn.manifold import TSNE
 import seaborn as sns
 
 

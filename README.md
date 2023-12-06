@@ -16,12 +16,13 @@ The model is a feedforward neural network with the following architecture:
 
 ## Dependencies
 
-- Python 3.x
 - PyTorch
 - Pandas
 - NumPy
 - Scikit-Learn
 - Matplotlib
+- joblib
+- tqdm
 
 ## Dataset
 
@@ -35,12 +36,12 @@ The dataset `star_classification.csv` contains the following columns:
 Ensure that you have Python 3.x installed along with the necessary libraries. You can install the required packages using:
 
 ```bash
-pip install torch pandas numpy scikit-learn matplotlib
+pip install torch pandas numpy scikit-learn matplotlib tqdm
 ```
 
 ## Usage
 
-To train the model, run the main script:
+To train the model and get training data, run the main script:
 
 ```bash
 python train_model.py
@@ -48,9 +49,19 @@ python train_model.py
 
 This will train the model and save the trained model as `model.pth`. The script will also generate a plot of the loss curve during training and validation, saved as `loss_curve.png` and a confusion matrix as `confusion_matrix.png`.
 
-## Example 
+To manually test the model with new stellar object data, run the following script:
 
-A user may then input star photometric data and load the saved `model.pth`so manually use it to classify a stellar object.
+```bash
+python predict.py
+```
+
+A user may then input star photometric data and load the saved `model.pth` and `scaler.save` to manually use it to classify a stellar object.
+
+The prompt will be:
+Enter the values for u, g, r, i, z, redshift
+
+User input should be in the following format: 25.26307 22.66389 20.60976 20.25615 19.54544 1.424659
+
 
 ## Results
 
@@ -59,9 +70,9 @@ The model achieves a high accuracy of 97.09% on the test set, with both training
 
 ## Credits
 
-Dataset from Sloan Digital Sky Survey
-https://www.sdss4.org/dr17/
-Pytorch nn documentation
-https://www.sdss4.org/dr17/
-Sentdex Youtube - Neural Networks from Scratch
-https://www.youtube.com/@sentdex
+- Dataset from Sloan Digital Sky Survey
+- https://www.sdss4.org/dr17/
+- Pytorch nn documentation
+- https://www.sdss4.org/dr17/
+- Sentdex Youtube - Neural Networks from Scratch
+- https://www.youtube.com/@sentdex
